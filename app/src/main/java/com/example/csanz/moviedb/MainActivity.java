@@ -6,11 +6,12 @@ import android.support.v7.widget.RecyclerView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static com.example.csanz.moviedb.Data.Constants.URL_MOVIES;
 
 public class MainActivity extends AppCompatActivity {
-
-    //URL api the Movie Database
-    private final String url = "https://api.themoviedb.org/";
 
     @BindView(R.id.recyclerViewMovies)
     RecyclerView listMovies;
@@ -21,5 +22,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
+
+    }
+
+    private void connectAPI(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(URL_MOVIES)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
     }
 }
