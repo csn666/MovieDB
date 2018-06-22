@@ -6,10 +6,10 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.Query;
+import retrofit2.http.Path;
 
 public interface IServiceClient {
     //Get list movies
-    @GET("list")
-    Call<List<Movie>> getListMovies(@Query("id") String id);
+    @GET("list/{listId}")
+    Call<List<Movie>> getListMovies(@Path("id") int id);
 }
