@@ -1,1 +1,1 @@
-include ':app', ':syn'
+include ':app', ':syn', ':syn', ':syn'
