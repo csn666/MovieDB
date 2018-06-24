@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">MovieDB</string>
-    <string name="api_key">93aea0c77bc168d8bbce3918cefefa45</string>
+    <string name="search">Search movie</string>
 </resources>

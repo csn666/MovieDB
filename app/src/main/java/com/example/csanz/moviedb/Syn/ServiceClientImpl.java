@@ -24,7 +24,6 @@ public class ServiceClientImpl {
 
     private Retrofit retrofit;
     private IServiceClient iService;
-    public static List<Movie> movies;
 
     public void connectAPI(){
         retrofit = new Retrofit.Builder()
