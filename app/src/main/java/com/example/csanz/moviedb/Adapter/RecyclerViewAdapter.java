@@ -65,7 +65,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public void setMovies(List<Movie> list){
         movies.addAll(list);
-        Log.d("TAG Add movies", String.valueOf(list.size())+ " movies added");
         moviesFiltered = movies;
         notifyDataSetChanged();
     }

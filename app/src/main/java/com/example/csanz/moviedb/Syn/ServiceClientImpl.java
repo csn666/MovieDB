@@ -25,6 +25,9 @@ public class ServiceClientImpl {
     private Retrofit retrofit;
     private IServiceClient iService;
 
+    /*
+     * Connect to TMDB
+     */
     public void connectAPI(){
         retrofit = new Retrofit.Builder()
                 .baseUrl(URL_MOVIES)

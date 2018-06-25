@@ -11,12 +11,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.csanz.moviedb.Adapter.RecyclerViewAdapter;
 import com.example.csanz.moviedb.Data.Movie;
-import com.example.csanz.moviedb.RefreshRecycler.EndlessRecycler;
 import com.example.csanz.moviedb.Syn.ServiceClientImpl;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.editSearch)
     EditText editSearch;
     @BindView(R.id.imgClearSearch)
-    ImageButton btnClearSearch;
+    ImageView btnClearSearch;
 
     private int numPage=1;
     private ServiceClientImpl serviceClient;
@@ -123,10 +123,13 @@ public class MainActivity extends AppCompatActivity {
             if(list!=null && list.size()>0){
                 adapter.setMovies(list);
 
+                //if user is searching some title, we apply filter. We do it this because if we obtain
+                //a new page of data we need to get movies that contain the string writed by user.
                 if(charSequence!=null && charSequence!=""){
                     adapter.getFilter().filter(charSequence);
                 }
 
+                //Increment numPage to obtain new data
                 numPage += 1;
             }
             showProgressBar(false);
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-     * Clear results search
+     * Clear results searched
      */
     @OnClick(R.id.imgClearSearch)
     public void clearSearch(){
