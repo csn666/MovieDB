@@ -1,5 +1,6 @@
 package com.example.csanz.moviedb.Adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.csanz.moviedb.Data.Movie;
+import com.example.csanz.moviedb.MainActivity;
 import com.example.csanz.moviedb.R;
 import com.squareup.picasso.Picasso;
 
@@ -29,6 +31,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private List<Movie> movies;
     private List<Movie> moviesFiltered;
     private Context context;
+    private int totalItemsSerched=0;
+    private int auxTotalItems = 0;
 
     public RecyclerViewAdapter(List<Movie> mList, Context mContext){
         movies = mList;
@@ -65,18 +69,20 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public void setMovies(List<Movie> list){
         movies.addAll(list);
-        Log.d("TAG Add movies", String.valueOf(list.size())+ " movies added");
-        moviesFiltered = movies;
-        notifyDataSetChanged();
+        //Log.d("TAG Add movies", String.valueOf(list.size())+ " movies added");
+        //moviesFiltered = movies;
+        //notifyDataSetChanged();
     }
 
     @Override
     public Filter getFilter() {
+
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 String charString = constraint.toString();
                 List<Movie> filtered = new ArrayList<>();
+
                 if(charString.isEmpty()){
                     filtered = movies;
                 }else{
@@ -96,7 +102,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 moviesFiltered = (ArrayList<Movie>)results.values;
-                notifyDataSetChanged();
+                if(moviesFiltered.size()==totalItemsSerched){
+                    ((MainActivity)context).newSearch();
+                }else{
+                    totalItemsSerched = moviesFiltered.size();
+                    notifyDataSetChanged();
+                }
             }
         };
     }
@@ -118,5 +129,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             super(v);
             ButterKnife.bind(this, v);
         }
+    }
+
+    public interface newSearch{
+        void newSearch();
     }
 }

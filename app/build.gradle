@@ -28,11 +28,17 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:cardview-v7:27.1.1'
 
+    //Library butterknife
     implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
+    //Library retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
 
+    //Library for images
     implementation 'com.squareup.picasso:picasso:2.5.2'
+
+    //Library for pagination list
+    implementation 'com.github.omadahealth:swipy:1.2.3@aar'
 }
