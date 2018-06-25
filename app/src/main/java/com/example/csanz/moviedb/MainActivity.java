@@ -8,16 +8,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.csanz.moviedb.Adapter.RecyclerViewAdapter;
 import com.example.csanz.moviedb.Data.Movie;
-import com.example.csanz.moviedb.RefreshRecycler.EndlessRecycler;
 import com.example.csanz.moviedb.Syn.ServiceClientImpl;
 import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayout;
 import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
@@ -30,7 +29,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
-public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener, RecyclerViewAdapter.newSearch {
+public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.newSearch {
 
     @BindView(R.id.recyclerViewMovies)
     RecyclerView listMovies;
@@ -39,15 +38,18 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     @BindView(R.id.editSearch)
     EditText editSearch;
     @BindView(R.id.imgClearSearch)
-    ImageButton btnClearSearch;
-    @BindView(R.id.swipeContainer)
-    SwipyRefreshLayout swipeContainer;
+    ImageView btnClearSearch;
+    /*@BindView(R.id.swipeContainer)
+    SwipyRefreshLayout swipeContainer;*/
 
     private int numPage=1;
     private ServiceClientImpl serviceClient;
     private RecyclerViewAdapter adapter;
     CharSequence charSequence=null;
-    public boolean isSwipe = false;
+
+    boolean loading = false;
+
+    //public boolean isSwipe = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,16 +57,11 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        swipeContainer.setOnRefreshListener(this);
+        //swipeContainer.setOnRefreshListener(this);
 
         //Connect to api TMDB
         serviceClient = new ServiceClientImpl();
         serviceClient.connectAPI();
-
-        //Setup adapter
-        setupAdapter();
-        //Execute async task to get movies from TMDB
-        new showMovies().execute();
 
         //Add watcher to EditText
         editSearch.addTextChangedListener(new TextWatcher() {
@@ -79,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
             @Override
             public void afterTextChanged(Editable s) {
+                //If editText is not empty, hide button clear.
                 if(!s.toString().isEmpty())
                 {
                     if(btnClearSearch.getVisibility()==View.INVISIBLE)
@@ -90,9 +88,75 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 }
             }
         });
+
+        //Setup adapter
+        setupAdapter();
+        //Execute async task to get movies from TMDB
+        new showMovies().execute();
+
+        listMovies.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            int visibleItemCount=0;
+            int totalItemCount=0;
+            int pastVisibleItems=0;
+            int currentScrollState = 0;
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                currentScrollState = newState;
+
+                if(pastVisibleItems+visibleItemCount >= totalItemCount && currentScrollState==0){
+                    if(!loading){
+                        loading = true;
+                        new showMovies().execute();
+                    }
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy){
+                super.onScrolled(recyclerView,dx,dy);
+                LinearLayoutManager mLayoutManager = (LinearLayoutManager)listMovies.getLayoutManager();
+                visibleItemCount = mLayoutManager.getChildCount();
+                totalItemCount = mLayoutManager.getItemCount();
+                pastVisibleItems = mLayoutManager.findFirstVisibleItemPosition();
+            }
+        });
+        /*listMovies.setOnScrollListener(new AbsListView.OnScrollListener() {
+            int currentFirstVisibleItem = 0;
+            int currentVisibleItemCount = 0;
+            int totalItemCount = 0;
+            int currentScrollState = 0;
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                currentScrollState = scrollState;
+
+                if(currentVisibleItemCount > 0 && currentScrollState == SCROLL_STATE_IDLE && totalItemCount == (currentVisibleItemCount + currentVisibleItemCount)){
+                    if(!loading){
+                        loading = true;
+                        new showMovies().execute();
+                    }
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                currentFirstVisibleItem = firstVisibleItem;
+                currentVisibleItemCount = visibleItemCount;
+                this.totalItemCount = totalItemCount;
+            }
+        });*/
     }
 
-    @Override
+
+
+    /*
+     * Refresh recyclerview
+     */
+    /*@Override
     public void onRefresh(SwipyRefreshLayoutDirection direction) {
         isSwipe = true;
         new  Handler().postDelayed(new Runnable() {
@@ -102,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
         },10);
 
-    }
+    }*/
 
     /*
      * Method async to get movies from database TMDB
@@ -111,7 +175,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         @Override
         protected void onPreExecute(){
-            if(!isSwipe)
+            //If refresh recyclerivew with new data, don't use progressbar
+            //if(!isSwipe)
                 showProgressBar(true);
         }
 
@@ -123,23 +188,27 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         @Override
         protected void onPostExecute(List<Movie> list){
-            swipeContainer.setRefreshing(false);
+            //swipeContainer.setRefreshing(false);
             if(list!=null && list.size()>0){
                 adapter.setMovies(list);
 
+                //Apply filter.
                 if(charSequence!=null && charSequence!=""){
                     adapter.getFilter().filter(charSequence);
-                }else{
+                }else{ // if not search by filter, return all movies
                     adapter.getFilter().filter("");
                 }
 
+                //Increment numPage to obtain in next charge new movies
                 numPage += 1;
             }
 
-            if(!isSwipe)
+            loading = false;
+            //If refresh recyclerivew with new data, don't use progressbar
+            //if(!isSwipe)
                 showProgressBar(false);
 
-            isSwipe = false;
+            //isSwipe = false;
         }
     }
 
@@ -168,24 +237,18 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
      * Setup adapter movies
      */
     private void setupAdapter(){
-        adapter = new RecyclerViewAdapter(new ArrayList<Movie>(), MainActivity.this);
+        adapter = new RecyclerViewAdapter( new ArrayList<Movie>(),MainActivity.this);
         this.listMovies.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         this.listMovies.setAdapter(adapter);
     }
 
-    /*
-     * This method return if is the end of recycleview
-     */
-    private boolean isEndRecyclerView(){
-        LinearLayoutManager layoutManager = ((LinearLayoutManager)listMovies.getLayoutManager());
-        int visibleItemCount = layoutManager.getChildCount();
-        int totalItemCount = layoutManager.getItemCount();
-        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
-        return ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0);
-    }
 
+    /*
+     * Method that it is called from adapter when result searched don't return matches in the actual page.
+     * This method is called until found matches.
+     */
     public void newSearch(){
-        isSwipe=true;
+        //isSwipe=true;
         new showMovies().execute();
     }
 }
