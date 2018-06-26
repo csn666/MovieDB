@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.EditText;
@@ -18,8 +19,6 @@ import android.widget.ProgressBar;
 import com.example.csanz.moviedb.Adapter.RecyclerViewAdapter;
 import com.example.csanz.moviedb.Data.Movie;
 import com.example.csanz.moviedb.Syn.ServiceClientImpl;
-import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayout;
-import com.omadahealth.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +38,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     EditText editSearch;
     @BindView(R.id.imgClearSearch)
     ImageView btnClearSearch;
-    /*@BindView(R.id.swipeContainer)
-    SwipyRefreshLayout swipeContainer;*/
 
     private int numPage=1;
     private ServiceClientImpl serviceClient;
@@ -49,15 +46,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     boolean loading = false;
 
-    //public boolean isSwipe = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-        //swipeContainer.setOnRefreshListener(this);
 
         //Connect to api TMDB
         serviceClient = new ServiceClientImpl();
@@ -94,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         //Execute async task to get movies from TMDB
         new showMovies().execute();
 
+        //Add scrolllistener to recyclerview to detect the end of this
         listMovies.addOnScrollListener(new RecyclerView.OnScrollListener() {
 
             int visibleItemCount=0;
@@ -124,49 +119,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 pastVisibleItems = mLayoutManager.findFirstVisibleItemPosition();
             }
         });
-        /*listMovies.setOnScrollListener(new AbsListView.OnScrollListener() {
-            int currentFirstVisibleItem = 0;
-            int currentVisibleItemCount = 0;
-            int totalItemCount = 0;
-            int currentScrollState = 0;
-
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                currentScrollState = scrollState;
-
-                if(currentVisibleItemCount > 0 && currentScrollState == SCROLL_STATE_IDLE && totalItemCount == (currentVisibleItemCount + currentVisibleItemCount)){
-                    if(!loading){
-                        loading = true;
-                        new showMovies().execute();
-                    }
-                }
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                currentFirstVisibleItem = firstVisibleItem;
-                currentVisibleItemCount = visibleItemCount;
-                this.totalItemCount = totalItemCount;
-            }
-        });*/
     }
-
-
-
-    /*
-     * Refresh recyclerview
-     */
-    /*@Override
-    public void onRefresh(SwipyRefreshLayoutDirection direction) {
-        isSwipe = true;
-        new  Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                new showMovies().execute();
-            }
-        },10);
-
-    }*/
 
     /*
      * Method async to get movies from database TMDB
@@ -175,9 +128,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
         @Override
         protected void onPreExecute(){
-            //If refresh recyclerivew with new data, don't use progressbar
-            //if(!isSwipe)
-                showProgressBar(true);
+            showProgressBar(true);
         }
 
         @Override
@@ -188,7 +139,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
         @Override
         protected void onPostExecute(List<Movie> list){
-            //swipeContainer.setRefreshing(false);
             if(list!=null && list.size()>0){
                 adapter.setMovies(list);
 
@@ -204,11 +154,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             }
 
             loading = false;
-            //If refresh recyclerivew with new data, don't use progressbar
-            //if(!isSwipe)
-                showProgressBar(false);
 
-            //isSwipe = false;
+            showProgressBar(false);
         }
     }
 
@@ -248,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
      * This method is called until found matches.
      */
     public void newSearch(){
-        //isSwipe=true;
         new showMovies().execute();
     }
 }

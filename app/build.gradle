@@ -38,7 +38,4 @@ dependencies {
 
     //Library for images
     implementation 'com.squareup.picasso:picasso:2.5.2'
-
-    //Library for pagination list
-    implementation 'com.github.omadahealth:swipy:1.2.3@aar'
 }
